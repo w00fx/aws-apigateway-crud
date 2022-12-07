@@ -17,13 +17,13 @@ package:
     - '!**'
 
 functions:
-  create:
-    handler: lambdas/create.handler
+  createNote:
+    handler: lambdas/createNote.handler
     environment:
       TABLE_NAME: !Ref notesTable
     package:
       patterns: 
-       - 'lambdas/create.js'
+       - 'lambdas/createNote.js'
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -33,6 +33,23 @@ functions:
       - httpApi:
           path: /
           method: PUT
+
+  readNotes:
+    handler: lambdas/readNotes.handler
+    environment:
+      TABLE_NAME: !Ref notesTable
+    package:
+      patterns: 
+       - 'lambdas/readNotes.js'
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Scan
+        Resource: !GetAtt notesTable.Arn
+    events:
+      - httpApi:
+          path: /
+          method: GET
 
 resources:
   Resources:

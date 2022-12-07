@@ -1,9 +1,7 @@
 "use strict";
-import { DynamoDB } from "aws-sdk";
+const AWS = require("aws-sdk");
 
-
-const dynamoDb = new DynamoDB.DocumentClient();
-
+const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
 const validateData = (eventBody) => {
   return (
@@ -12,8 +10,7 @@ const validateData = (eventBody) => {
   );
 };
 
-
-export async function handler(event) {
+exports.handler = async (event) => {
   try {
     JSON.parse(event.body);
   } catch (err) {
@@ -29,7 +26,6 @@ export async function handler(event) {
   const eventBody = JSON.parse(event.body);
 
   if (eventBody.note_name && eventBody.note_description) {
-
     if (validateData(eventBody)) {
       try {
         const putParams = {
@@ -43,7 +39,6 @@ export async function handler(event) {
         await dynamoDb.put(putParams).promise();
         statusCode = 201;
         body = `Note "${eventBody.note_name}" inserted in table.`;
-
       } catch (err) {
         if (err.name === "ConditionalCheckFailedException") {
           console.log(`Note "${eventBody.note_name}" already exists in table.`);
@@ -52,19 +47,24 @@ export async function handler(event) {
         } else {
           console.log(`Error has happened: "${err}"`);
           statusCode = 500;
-          body = 'Error has happened.';
-        };
-      };
+          body = "Error has happened.";
+        }
+      }
     } else {
       statusCode = 400;
-      body = 'Body is invalid. note_name and note_description should be strings.';
-      console.log('Body is invalid. note_name and note_description should be strings.')
-    };
+      body =
+        "Body is invalid. note_name and note_description should be strings.";
+      console.log(
+        "Body is invalid. note_name and note_description should be strings."
+      );
+    }
   } else {
     statusCode = 400;
-    body = 'Body is invalid. Please insert note_name and note_description.';
-    console.log('Body is invalid. Please insert note_name and note_description.')
-  };
+    body = "Body is invalid. Please insert note_name and note_description.";
+    console.log(
+      "Body is invalid. Please insert note_name and note_description."
+    );
+  }
 
   return {
     statusCode,
