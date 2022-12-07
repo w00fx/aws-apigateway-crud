@@ -1,0 +1,49 @@
+service: aws-apigateway-crud
+frameworkVersion: '3'
+
+plugins:
+  - serverless-iam-roles-per-function
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  architecture: arm64
+  memorySize: 256
+  timeout: 29
+
+package:
+  individually: true
+  patterns:
+    - '!**'
+
+functions:
+  create:
+    handler: lambdas/create.handler
+    environment:
+      TABLE_NAME: !Ref notesTable
+    package:
+      patterns: 
+       - 'lambdas/create.js'
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: !GetAtt notesTable.Arn
+    events:
+      - httpApi:
+          path: /
+          method: PUT
+
+resources:
+  Resources:
+    notesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: note_name
+            AttributeType: S
+        BillingMode: PAY_PER_REQUEST
+        KeySchema:
+          - AttributeName: note_name
+            KeyType: HASH
+        # TableName: ${self:service}-notesTable-${sls:stage}
