@@ -31,7 +31,7 @@ exports.handler = async (event) => {
         const putParams = {
           TableName: process.env.TABLE_NAME,
           Item: {
-            note_name: eventBody.note_name,
+            note_name: eventBody.note_name.toLowerCase(),
             note_description: eventBody.note_description,
           },
           ConditionExpression: "attribute_not_exists(note_name)",
@@ -39,31 +39,28 @@ exports.handler = async (event) => {
         await dynamoDb.put(putParams).promise();
         statusCode = 201;
         body = `Note "${eventBody.note_name}" inserted in table.`;
+        console.log(body);
       } catch (err) {
         if (err.name === "ConditionalCheckFailedException") {
-          console.log(`Note "${eventBody.note_name}" already exists in table.`);
-          statusCode = 400;
+          statusCode = 409;
           body = `Note "${eventBody.note_name}" already exists in table.`;
+          console.log(body);
         } else {
-          console.log(`Error has happened: "${err}"`);
           statusCode = 500;
-          body = "Error has happened.";
+          body = "Can't access tables.";
+          console.log(`Error has happened: "${err}"`);
         }
       }
     } else {
       statusCode = 400;
       body =
         "Body is invalid. note_name and note_description should be strings.";
-      console.log(
-        "Body is invalid. note_name and note_description should be strings."
-      );
+      console.log(body);
     }
   } else {
     statusCode = 400;
     body = "Body is invalid. Please insert note_name and note_description.";
-    console.log(
-      "Body is invalid. Please insert note_name and note_description."
-    );
+    console.log(body);
   }
 
   return {

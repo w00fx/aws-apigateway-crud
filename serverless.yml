@@ -32,7 +32,7 @@ functions:
     events:
       - httpApi:
           path: /
-          method: PUT
+          method: POST
 
   readNotes:
     handler: lambdas/readNotes.handler
@@ -50,6 +50,23 @@ functions:
       - httpApi:
           path: /
           method: GET
+
+  deleteNote:
+    handler: lambdas/deleteNote.handler
+    environment:
+      TABLE_NAME: !Ref notesTable
+    package:
+      patterns: 
+       - 'lambdas/deleteNote.js'
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+        Resource: !GetAtt notesTable.Arn
+    events:
+      - httpApi:
+          path: /{note_name}
+          method: DELETE
 
 resources:
   Resources:

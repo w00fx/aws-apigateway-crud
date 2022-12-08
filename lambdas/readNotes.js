@@ -5,12 +5,13 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 exports.handler = async (event) => {
   let statusCode;
   let body;
+  let result;
 
   try {
     const params = {
       TableName: process.env.TABLE_NAME,
     };
-    var result = await dynamoDb.scan(params).promise();
+    result = await dynamoDb.scan(params).promise();
   } catch (err) {
     statusCode = 500;
     body = "Cant accessed tables.";
