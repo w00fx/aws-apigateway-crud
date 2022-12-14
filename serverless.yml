@@ -68,6 +68,23 @@ functions:
           path: /{note_name}
           method: DELETE
 
+  updateNote:
+    handler: lambdas/updateNote.handler
+    environment:
+      TABLE_NAME: !Ref notesTable
+    package:
+      patterns: 
+       - 'lambdas/updateNote.js'
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+        Resource: !GetAtt notesTable.Arn
+    events:
+      - httpApi:
+          path: /
+          method: PUT
+
 resources:
   Resources:
     notesTable:
