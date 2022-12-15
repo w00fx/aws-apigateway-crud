@@ -1,8 +1,8 @@
 "use strict";
 const AWS = require("aws-sdk");
-const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event) => {
+  const dynamoDb = new AWS.DynamoDB.DocumentClient();
   let statusCode;
   let body;
   let result;
@@ -15,7 +15,11 @@ exports.handler = async (event) => {
   } catch (err) {
     statusCode = 500;
     body = "Cant accessed tables.";
-    console.log(err);
+    console.log(`Cant accessed tables. Err: "${err}"`);
+    return {
+      statusCode,
+      body,
+    };
   }
 
   statusCode = 200;
@@ -23,7 +27,7 @@ exports.handler = async (event) => {
     notes: result.Items,
     message: "Items retrieved."
   });
-  console.log(result);
+  console.log('Items retrieved.')
 
   return {
     statusCode,

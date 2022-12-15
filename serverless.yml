@@ -3,6 +3,8 @@ frameworkVersion: '3'
 
 plugins:
   - serverless-iam-roles-per-function
+  - serverless-mocha-plugin
+
 
 provider:
   name: aws

@@ -1,8 +1,6 @@
 "use strict";
 const AWS = require("aws-sdk");
 
-const dynamoDb = new AWS.DynamoDB.DocumentClient();
-
 const validateData = (eventBody) => {
   return (
     typeof eventBody.note_name === "string" &&
@@ -11,6 +9,8 @@ const validateData = (eventBody) => {
 };
 
 exports.handler = async (event) => {
+  const dynamoDb = new AWS.DynamoDB.DocumentClient();
+
   try {
     JSON.parse(event.body);
   } catch (err) {
