@@ -1,10 +1,10 @@
-name: CI/CD for DEV branch
+name: Pull-request validation
 
 on:
-  push:
+  pull_request:
     branches:
       - dev
-  workflow_dispatch:
+      - main
 
 jobs:
   lint:
@@ -14,23 +14,30 @@ jobs:
       matrix:
         node-version: [16.x]
     steps:
-    - uses: actions/checkout@v3
+    - name: Get code
+      uses: actions/checkout@v3
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
+
     - name: Install node dependencies
       run: npm ci
+
     - name: Install cfn-lint
       # Install cfn-lint-serverless
       run: pip install cfn-lint
+
     - name: Create Serverless Framework package
       uses: serverless/github-action@v3.1
       with:
         args: package --package output/
+
     - name: Lint Serverless Framework Cloudformation
       run: cfn-lint output/cloudformation-template-*.json -i W
-    - name: Run NodeJS Linters
+
+    - name: Run NodeJS Linters/Security Checks
       uses: wearerequired/lint-action@v2
       with:
         eslint: true
@@ -38,47 +45,24 @@ jobs:
 
   testing:
     needs: lint
-    name: unit testing
+    name: Unit testing
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [16.x]
     steps:
-    - uses: actions/checkout@v3
+    - name: Get code
+      uses: actions/checkout@v3
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
+
     - name: Install node dependencies
       run: npm ci
+
     - name: unit tests
       uses: serverless/github-action@v3.1
       with:
         args: invoke test
-
-  deploy:
-    needs: testing
-    name: deploy
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [16.x]
-    steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-    - name: Install node dependencies
-      run: npm ci
-    - name: serverless deploy
-      uses: serverless/github-action@v3.1
-      with:
-        args: deploy --stage dev
-      env:
-        # SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
-        # or if using AWS credentials directly
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    - name: Output API URL
-      run: cat .env

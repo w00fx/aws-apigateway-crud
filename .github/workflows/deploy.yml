@@ -1,0 +1,84 @@
+name: Deploy serverless and unit testing for main environments.
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  integration-testing:
+    if: github.GITHUB_REF_NAME == 'main'
+    name: Serverless deploy
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+    - name: Get code
+      uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install node dependencies
+      run: npm ci
+
+    - name: serverless deploy integration-testing
+      uses: serverless/github-action@v3.1
+      with:
+        args: deploy --stage integration-testing
+      env:
+        # SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+        # or if using AWS credentials directly
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Output API URL
+      run: cat .env
+
+    - name: Integration testing
+      run: npm run integration-test
+
+    - name: serverless remove integration-testing
+      uses: serverless/github-action@v3.1
+      with:
+        args: remove --stage integration-testing
+      env:
+        # SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+        # or if using AWS credentials directly
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  deploy:
+    needs: integration-testing
+    name: Serverless deploy
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+    - name: Get code
+      uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install node dependencies
+      run: npm ci
+
+    - name: serverless deploy
+      uses: serverless/github-action@v3.1
+      with:
+        args: deploy --stage ${{ github.GITHUB_REF_NAME }}
+      env:
+        # SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+        # or if using AWS credentials directly
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: Output API URL
+      run: cat .env
