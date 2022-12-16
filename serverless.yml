@@ -4,7 +4,11 @@ frameworkVersion: '3'
 plugins:
   - serverless-iam-roles-per-function
   - serverless-mocha-plugin
+  - serverless-export-outputs
 
+custom:
+  exportOutputs:
+    - HttpApiUrl
 
 provider:
   name: aws

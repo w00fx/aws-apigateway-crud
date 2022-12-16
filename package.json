@@ -1,10 +1,16 @@
 {
   "scripts": {
-    "test": "sls invoke test"
+    "test": "sls invoke test",
+    "integration-test": "mocha integration_tests/"
   },
   "devDependencies": {
     "aws-sdk": "^2.1268.0",
     "aws-sdk-mock": "^5.8.0",
+    "axios": "^1.2.1",
+    "chai": "^4.3.7",
+    "dotenv": "^16.0.3",
+    "mocha": "^10.2.0",
+    "serverless-export-outputs": "^1.0.2",
     "serverless-iam-roles-per-function": "^3.2.0",
     "serverless-mocha-plugin": "^1.12.0"
   }
