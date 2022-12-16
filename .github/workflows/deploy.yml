@@ -8,7 +8,7 @@ on:
 
 jobs:
   integration-testing:
-    if: github.GITHUB_REF_NAME == 'main'
+    if: github.ref_name == 'main'
     name: Integration testing
     runs-on: ubuntu-latest
     strategy:
