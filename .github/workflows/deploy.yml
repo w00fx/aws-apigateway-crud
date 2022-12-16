@@ -18,6 +18,12 @@ jobs:
     - name: Get code
       uses: actions/checkout@v3
 
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: ${{ secrets.IAM_ROLE_GITHUB_ACTIONS }}
+        aws-region: ${{ secrets.IAM_ROLE_REGION }}
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
@@ -30,11 +36,6 @@ jobs:
       uses: serverless/github-action@v3.1
       with:
         args: deploy --stage integration-testing
-      env:
-        # SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
-        # or if using AWS credentials directly
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     - name: Output API URL
       run: cat .env
@@ -43,18 +44,14 @@ jobs:
       run: npm run integration-test
 
     - name: serverless remove integration-testing
+      if: ${{ always() }}
       uses: serverless/github-action@v3.1
       with:
         args: remove --stage integration-testing
-      env:
-        # SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
-        # or if using AWS credentials directly
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   deploy:
     needs: integration-testing
-    if: ${{ always() }}
+    if: ${{ success () || always() }}
     name: Serverless deploy
     runs-on: ubuntu-latest
     strategy:
@@ -68,6 +65,12 @@ jobs:
     - name: Get code
       uses: actions/checkout@v3
 
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: ${{ secrets.IAM_ROLE_GITHUB_ACTIONS }}
+        aws-region: ${{ secrets.IAM_ROLE_REGION }}
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
@@ -80,10 +83,6 @@ jobs:
       uses: serverless/github-action@v3.1
       with:
         args: deploy --stage ${{ github.ref_name }}
-      env:
-        # SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
-        # or if using AWS credentials directly
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
     - name: Output API URL
       run: cat .env
