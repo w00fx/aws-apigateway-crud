@@ -1,4 +1,4 @@
-name: Deploy serverless
+name: Deploy serverless and unit testing for main environments.
 
 on:
   push:
