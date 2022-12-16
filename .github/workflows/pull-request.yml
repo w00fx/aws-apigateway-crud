@@ -1,0 +1,68 @@
+name: Pull-request validation
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+
+jobs:
+  lint:
+    name: Linting
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+    - name: Get code
+      uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install node dependencies
+      run: npm ci
+
+    - name: Install cfn-lint
+      # Install cfn-lint-serverless
+      run: pip install cfn-lint
+
+    - name: Create Serverless Framework package
+      uses: serverless/github-action@v3.1
+      with:
+        args: package --package output/
+
+    - name: Lint Serverless Framework Cloudformation
+      run: cfn-lint output/cloudformation-template-*.json -i W
+
+    - name: Run NodeJS Linters/Security Checks
+      uses: wearerequired/lint-action@v2
+      with:
+        eslint: true
+        eslint_dir: lambdas/
+
+  testing:
+    needs: lint
+    name: Unit testing
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+    - name: Get code
+      uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install node dependencies
+      run: npm ci
+
+    - name: unit tests
+      uses: serverless/github-action@v3.1
+      with:
+        args: invoke test

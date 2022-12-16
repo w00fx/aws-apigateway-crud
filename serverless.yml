@@ -1,0 +1,106 @@
+service: aws-apigateway-crud
+frameworkVersion: '3'
+
+plugins:
+  - serverless-iam-roles-per-function
+  - serverless-mocha-plugin
+  - serverless-export-outputs
+
+custom:
+  exportOutputs:
+    - HttpApiUrl
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  architecture: arm64
+  memorySize: 256
+  timeout: 29
+
+package:
+  individually: true
+  patterns:
+    - '!**'
+
+functions:
+  createNote:
+    handler: lambdas/createNote.handler
+    environment:
+      TABLE_NAME: !Ref notesTable
+    package:
+      patterns: 
+       - 'lambdas/createNote.js'
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: !GetAtt notesTable.Arn
+    events:
+      - httpApi:
+          path: /
+          method: POST
+
+  readNotes:
+    handler: lambdas/readNotes.handler
+    environment:
+      TABLE_NAME: !Ref notesTable
+    package:
+      patterns: 
+       - 'lambdas/readNotes.js'
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Scan
+        Resource: !GetAtt notesTable.Arn
+    events:
+      - httpApi:
+          path: /
+          method: GET
+
+  deleteNote:
+    handler: lambdas/deleteNote.handler
+    environment:
+      TABLE_NAME: !Ref notesTable
+    package:
+      patterns: 
+       - 'lambdas/deleteNote.js'
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+        Resource: !GetAtt notesTable.Arn
+    events:
+      - httpApi:
+          path: /{note_name}
+          method: DELETE
+
+  updateNote:
+    handler: lambdas/updateNote.handler
+    environment:
+      TABLE_NAME: !Ref notesTable
+    package:
+      patterns: 
+       - 'lambdas/updateNote.js'
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+        Resource: !GetAtt notesTable.Arn
+    events:
+      - httpApi:
+          path: /
+          method: PUT
+
+resources:
+  Resources:
+    notesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: note_name
+            AttributeType: S
+        BillingMode: PAY_PER_REQUEST
+        KeySchema:
+          - AttributeName: note_name
+            KeyType: HASH
+        # TableName: ${self:service}-notesTable-${sls:stage}
