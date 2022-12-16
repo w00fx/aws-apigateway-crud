@@ -54,12 +54,17 @@ jobs:
 
   deploy:
     needs: integration-testing
+    if: ${{ always() }}
     name: Serverless deploy
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [16.x]
     steps:
+    - name: fail if integration-test fails
+      if: ${{ needs.integration-testing.result == 'failure' }}
+      run: exit 1
+
     - name: Get code
       uses: actions/checkout@v3
 
