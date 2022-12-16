@@ -58,7 +58,6 @@ describe('updateNote tests', () => {
   before((done) => {
     AWS_SDK_MOCK.setSDKInstance(AWS);
     AWS_SDK_MOCK.mock("DynamoDB.DocumentClient", "update", function (params, callback) {
-      console.log(params);
       if (params.Key.note_name === 'exception_test') {
         callback({name: 'ConditionalCheckFailedException'}, null);
       } else if (params.Key.note_name === 'another_error') {

@@ -31,8 +31,8 @@ exports.handler = async (event) => {
       statusCode = 500;
       body = "Cant accessed tables.";
       console.log(`"${body} Error": "${err}"`);
-    };
-  };
+    }
+  }
 
   return {
     statusCode,

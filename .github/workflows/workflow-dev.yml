@@ -7,7 +7,38 @@ on:
   workflow_dispatch:
 
 jobs:
+  lint:
+    name: Linting
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Install node dependencies
+      run: npm ci
+    - name: Install cfn-lint-serverless
+      # Install cfn-lint-serverless
+      run: pip install cfn-lint cfn-lint-serverless
+    - name: Create Serverless Framework package
+      uses: serverless/github-action@v3.1
+      with:
+        args: package --package output/
+    - name: Lint Serverless Framework Cloudformation
+      run: cfn-lint output/cloudformation-template-*.json -a cfn_lint_serverless.rules
+    - name: Run NodeJS Linters
+      uses: wearerequired/lint-action@v2
+      with:
+        eslint: true
+        prettier: true
+        eslint_dir: lambdas/
+
   testing:
+    needs: lint
     name: unit testing
     runs-on: ubuntu-latest
     strategy:
@@ -19,18 +50,15 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm ci
+    - name: Install node dependencies
+      run: npm ci
     - name: unit tests
       uses: serverless/github-action@v3.1
       with:
         args: invoke test
-      env:
-        # SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
-        # or if using AWS credentials directly
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   deploy:
+    needs: testing
     name: deploy
     runs-on: ubuntu-latest
     strategy:
@@ -42,7 +70,8 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm ci
+    - name: Install node dependencies
+      run: npm ci
     - name: serverless deploy
       uses: serverless/github-action@v3.1
       with:
@@ -52,3 +81,5 @@ jobs:
         # or if using AWS credentials directly
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: Output API URL
+      run: cat .env
