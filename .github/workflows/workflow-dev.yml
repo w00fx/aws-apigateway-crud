@@ -21,15 +21,15 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: Install node dependencies
       run: npm ci
-    - name: Install cfn-lint-serverless
+    - name: Install cfn-lint
       # Install cfn-lint-serverless
-      run: pip install cfn-lint cfn-lint-serverless
+      run: pip install cfn-lint
     - name: Create Serverless Framework package
       uses: serverless/github-action@v3.1
       with:
         args: package --package output/
     - name: Lint Serverless Framework Cloudformation
-      run: cfn-lint output/cloudformation-template-*.json -a cfn_lint_serverless.rules -i W ES
+      run: cfn-lint output/cloudformation-template-*.json -i W
     - name: Run NodeJS Linters
       uses: wearerequired/lint-action@v2
       with:
