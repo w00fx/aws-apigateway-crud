@@ -29,7 +29,7 @@ jobs:
       with:
         args: package --package output/
     - name: Lint Serverless Framework Cloudformation
-      run: cfn-lint output/cloudformation-template-*.json -a cfn_lint_serverless.rules
+      run: cfn-lint output/cloudformation-template-*.json -a cfn_lint_serverless.rules -i W
     - name: Run NodeJS Linters
       uses: wearerequired/lint-action@v2
       with:
