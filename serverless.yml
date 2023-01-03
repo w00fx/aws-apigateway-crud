@@ -16,6 +16,8 @@ provider:
   architecture: arm64
   memorySize: 256
   timeout: 29
+  tracing:
+    lambda: true
 
 package:
   individually: true
@@ -103,4 +105,8 @@ resources:
         KeySchema:
           - AttributeName: note_name
             KeyType: HASH
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        SSESpecification:
+          SSEEnabled: true
         # TableName: ${self:service}-notesTable-${sls:stage}
