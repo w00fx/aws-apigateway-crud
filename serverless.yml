@@ -5,6 +5,8 @@ plugins:
   - serverless-iam-roles-per-function
   - serverless-mocha-plugin
   - serverless-export-outputs
+  - serverless-plugin-common-excludes
+  - serverless-plugin-include-dependencies
 
 custom:
   exportOutputs:
@@ -16,11 +18,18 @@ provider:
   architecture: arm64
   memorySize: 256
   timeout: 29
+  tracing:
+    apiGateway: true
+    lambda: true
 
 package:
   individually: true
   patterns:
-    - '!**'
+    - '!.github/**'
+    - '!images/**'
+    - '!lambdas/**'
+    - '!scripts/**'
+    - '!integration_tests/**'
 
 functions:
   createNote:
@@ -35,6 +44,11 @@ functions:
         Action:
           - dynamodb:PutItem
         Resource: !GetAtt notesTable.Arn
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource: "*"
     events:
       - httpApi:
           path: /
@@ -52,6 +66,11 @@ functions:
         Action:
           - dynamodb:Scan
         Resource: !GetAtt notesTable.Arn
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource: "*"
     events:
       - httpApi:
           path: /
@@ -69,6 +88,11 @@ functions:
         Action:
           - dynamodb:DeleteItem
         Resource: !GetAtt notesTable.Arn
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource: "*"
     events:
       - httpApi:
           path: /{note_name}
@@ -86,6 +110,11 @@ functions:
         Action:
           - dynamodb:UpdateItem
         Resource: !GetAtt notesTable.Arn
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource: "*"
     events:
       - httpApi:
           path: /
@@ -103,4 +132,8 @@ resources:
         KeySchema:
           - AttributeName: note_name
             KeyType: HASH
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        SSESpecification:
+          SSEEnabled: true
         # TableName: ${self:service}-notesTable-${sls:stage}

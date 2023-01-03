@@ -1,5 +1,6 @@
 "use strict";
-const AWS = require("aws-sdk");
+const AWSXRay = require('aws-xray-sdk-core');
+const AWS = AWSXRay.captureAWS(require('aws-sdk'));
 
 exports.handler = async () => {
   const dynamoDb = new AWS.DynamoDB.DocumentClient();
