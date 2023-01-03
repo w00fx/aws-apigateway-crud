@@ -25,17 +25,13 @@ jobs:
     - name: Install node dependencies
       run: npm ci
 
-    - name: Install cfn-lint
-      # Install cfn-lint-serverless
-      run: pip install cfn-lint
-
-    - name: Create Serverless Framework package
-      uses: serverless/github-action@v3.1
+    - name: Run Checkov action
+      id: checkov
+      uses: bridgecrewio/checkov-action@master
       with:
-        args: package --package output/
-
-    - name: Lint Serverless Framework Cloudformation
-      run: cfn-lint output/cloudformation-template-*.json -i W
+        file: serverless.yml # optional: provide the path for resource to be scanned. This will override the directory if both are provided.
+        framework: serverless # optional: run only on a specific infrastructure {cloudformation,terraform,kubernetes,all}
+        skip_check: CKV_AWS_119
 
     - name: Run NodeJS Linters/Security Checks
       uses: wearerequired/lint-action@v2
