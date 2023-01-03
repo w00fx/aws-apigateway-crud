@@ -19,6 +19,7 @@ provider:
   memorySize: 256
   timeout: 29
   tracing:
+    apiGateway: true
     lambda: true
 
 package:
